@@ -1,0 +1,23 @@
+{
+  "name": "cypress-demoqa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "cypress:open": "npx cypress open",
+  "cypress:run": "npx cypress run",
+  "test": "npm run cypress:run",
+  "test:spec": "node ./scripts/run-spec.js"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.7",
+    "@types/node": "^24.9.2",
+    "cypress": "^15.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
