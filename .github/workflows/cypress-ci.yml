@@ -1,0 +1,60 @@
+name: Cypress CI
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      spec:
+        description: 'Spec pattern to run, e.g. cypress/e2e/textbox.cy.ts'
+        required: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine SPEC
+        id: spec
+        run: |
+          SPEC="${{ github.event.inputs.spec }}"
+          if [ -z "$SPEC" ]; then
+            MSG=$(git log -1 --pretty=%B)
+            echo "Commit message: $MSG"
+            if echo "$MSG" | grep -qE "\[ci spec=.*\]"; then
+              SPEC=$(echo "$MSG" | sed -n 's/.*\[ci spec=\([^]]*\)\].*/\1/p')
+            fi
+          fi
+          if [ -z "$SPEC" ]; then
+            SPEC="cypress/e2e/**/*.cy.ts"
+          fi
+          echo "SPEC=$SPEC" >> $GITHUB_OUTPUT
+
+      - name: Run Cypress
+        env:
+          SPEC: ${{ steps.spec.outputs.SPEC }}
+        run: |
+          echo "Running spec: $SPEC"
+          npx cypress run --spec "$SPEC"
+
+      - name: Upload videos and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress/videos
+            cypress/screenshots
